@@ -13,8 +13,6 @@ function Invoke-FindIngressEmail {
     [Parameter(Mandatory=$true)]
     [String]$ToEmail,
     [Parameter(Mandatory=$false)]
-    [String]$OutFile,
-    [Parameter(Mandatory=$false)]
     [ValidateSet("ascii","bigendianutf32","unicode","utf8","utf8NoBOM","bigendianunicode","oem","utf7","utf8BOM","utf32")]
     [String]$Encoding = "ascii",
     [Parameter(Mandatory=$false)]
