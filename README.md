@@ -6,7 +6,6 @@
 ### Quick Send
 
 
- $EmailBody = gc ./email.html|out-string
  Invoke-FindIngressEmail -SMTPServer example.mail.protection.outlook.com -Subject "Device Code" -BodyFile ./email.html -FromFile fromEmails.txt -ToEmail "ceo@example.com" -Encoding unicode -Delay 15 -RetryDelay 35 -Verbose |tee outlog.txt
 
 
