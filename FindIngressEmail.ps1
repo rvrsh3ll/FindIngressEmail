@@ -90,16 +90,16 @@ function Invoke-FindIngressEmail {
     [String]$EmailSmtpPass,
     [Parameter(Mandatory=$false)]
     [ValidateSet("ascii","bigendianutf32","unicode","utf8","utf8NoBOM","bigendianunicode","oem","utf7","utf8BOM","utf32")]
-    [String]$BodyEncoding = "ascii",
+    [String]$BodyEncoding,
     [Parameter(Mandatory=$false)]
     [ValidateSet("ascii","bigendianutf32","unicode","utf8","utf8NoBOM","bigendianunicode","oem","utf7","utf8BOM","utf32")]
-    [String]$SubjectEncoding = "ascii",
+    [String]$SubjectEncoding,
     [Parameter(Mandatory=$false)]
     [ValidateSet("ascii","bigendianutf32","unicode","utf8","utf8NoBOM","bigendianunicode","oem","utf7","utf8BOM","utf32")]
-    [String]$HeadersEncoding = "ascii",
+    [String]$HeadersEncoding,
     [Parameter(Mandatory=$false)]
     [ValidateSet("QuotedPrintable","Base64","SevenBit","EightBit","Unknown")]
-    [String]$BodyTransferEncoding = "SevenBit",
+    [String]$BodyTransferEncoding,
     [Parameter(Mandatory=$false)]
     [Int]$Delay = 10,
     [Parameter(Mandatory=$false)]
@@ -118,23 +118,35 @@ function Invoke-FindIngressEmail {
             $m.From = $FromAddress
             $m.Sender = $FromAddress
             $m.ReplyToList.Add($FromAddress)
-            $m.BodyEncoding = [System.Text.Encoding]::$BodyEncoding
-            $m.SubjectEncoding = [System.Text.Encoding]::$SubjectEncoding
-            $m.HeadersEncoding = [System.Text.Encoding]::$HeadersEncoding
-            $m.BodyTransferEncoding = [System.Net.Mime.TransferEncoding]::$BodyTransferEncoding
+            if ($BodyEncoding) {
+                $m.BodyEncoding = [System.Text.Encoding]::$BodyEncoding
+            } 
+            if ($SubjectEncoding) {
+                $m.SubjectEncoding = [System.Text.Encoding]::$SubjectEncoding
+            }
+            if ($HeadersEncoding) {
+                $m.HeadersEncoding = [System.Text.Encoding]::$HeadersEncoding
+            }
+            if ($BodyTransferEncoding) {
+                $m.BodyTransferEncoding = [System.Net.Mime.TransferEncoding]::$BodyTransferEncoding
+            }
             $m.Headers.Add('Return-Path',$FromAddress)
             $smtp = new-object Net.Mail.SmtpClient($SMTPServer)
             if ($EmailSmtpUser -and $EmailSmtpPass) {
                 $smtp.Credentials =  New-Object System.Net.NetworkCredential($EmailSmtpUser , $EmailSmtpPass)
-            } else {
+            } elseif (($EmailSmtpUser -and !$EmailSmtpPass) -xor (!$EmailSmtpUser -and $EmailSmtpPass)) {
                 Write-Output -Message "[*] Both Username and Password are required."
-            }
+                break
+            } 
             $smtp.Send($m)
             Write-Verbose -Message "[*] Sending from $FromAddress to $ToEmail .."
             Start-Sleep -Seconds $Delay
         }
         catch {
+            Write-Warning $Error[0]
+            Write-Verbose $Error[0]
             Start-Sleep -Seconds $RetryDelay
+            continue
         }
     }
 }
